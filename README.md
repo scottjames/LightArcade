@@ -21,7 +21,7 @@ However, this time I wanted to try some new techniques.  Emphasis was placed on 
 
 ## Things to try (if time allows):
 
-  1. Integrate Sound playback, with MP3 decoder/playback.
+  1. Integrate Sound playback, with MP3 decoder/playback; use DFPlayer module.
   2. Use WiFi bridge (with ESP8266) to broadcast high scores, engage users.
 
 ## The Build

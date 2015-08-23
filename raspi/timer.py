@@ -49,7 +49,7 @@ def drawit(secs):
 #    clock.tick(60) 
 
 
-seconds = 15
+seconds = 10
 while not done and seconds > 0:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:

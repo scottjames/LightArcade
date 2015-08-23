@@ -1,13 +1,24 @@
+
+import pygame
+import pygame.sndarray
+
 import serial
 import time
+#import Sound
 
-slideSecs=3
-slideNum = 0
+#pygame.mixer.init()
+#pygame.mixer.music.load("tick.wav")
+
+
+slideSecs = 0
+slideNum  = 0
 
 def showNextSlide():
+    global slideNum
     print "SLIDE: show slide ", slideNum
     #if slideNum++ > 200:  ...whatever
     slideNum += 1
+# show up to MAX slides, then repeat
     if (slideNum > 10):
         slideNum = 0
 
@@ -19,8 +30,9 @@ def doDEMO():
     print "DEMO:"
     slideSecs -= 1
     if slideSecs <= 0:
-        print "DEMO: show slide..."
-        slideSecs = 3
+        #print "DEMO: show slide..."
+        showNextSlide()
+        slideSecs = 5
 
     #print "DEMO: (play music?? nah, annoying...)"
     print ""
@@ -61,30 +73,30 @@ theClock = ''
 score0 = ''
 score1 = ''
 winner = ''
+
 slideSecs=3
 slideNum = 0
+
 
 buff=''
 # read 10 lines...
 # while (1):
-for i in range(50):
-    #port.write("\r\nSay something:")
-    #rcv = port.read(10)
-    #port.write("\r\nYou sent:" + repr(rcv))
+for i in range(200):
     line = port.readline()
-    #line = port.readline(eol="\n")
-    buff = line[:-2]  # strip \n
-    #print "[%d] buf=%s" % (i,buff)
-    if buff[0] == '#' or buff =='':
-        #print "skip comment line:", buff
+    buff = line[:-2]  # strip \r\n from Arduino
+    print "[%d] buf=%s" % (i,buff)
+# skip lines with #, which are comments not to be processed
+    if buff == '' or buff[0] == '#' or (buff.find(':') < 0): 
+        print "skip comment line:", buff
         continue
+# other lines are COMMAND:<LIST;OF;TERMS>
     (cmd,terms) = buff.split(':')
     if (cmd == 'TICK'):
-        #print "tick report..."
-        #print "buff=",buff
+        print "tick report..."
+        print "buff=",buff
         a = buff.split(':')[1].split(';')
         for t in (terms.split(';')):
-            #print "term: >%s<" % (t)
+            print "term: >%s<" % (t)
             if t == '' or t is None:
                 continue
             (k,v) = t.split('=')

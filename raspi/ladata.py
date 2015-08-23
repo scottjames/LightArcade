@@ -4,6 +4,12 @@ import time
 #port = serial.Serial("/dev/ttyAMA0", baudrate=115200, timeout=3.0)
 port = serial.Serial("/dev/ttyUSB0", baudrate=115200, timeout=5.0)
 
+state = ''
+gameClock = ''
+theClock = ''
+score0 = ''
+score1 = ''
+
 buff=''
 # read 10 lines...
 for i in range(10):
@@ -28,5 +34,23 @@ for i in range(10):
                 continue
             (k,v) = t.split('=')
             print "key=%s / value=%s" % (k, v)
+            if k == 'CLOCK':
+                theClock = v
+            elif k == 'gameClock':
+                gameClock = v
+            elif k == 'SCORE0':
+                score0 = v
+            elif k == 'SCORE1':
+                score1 = v
+            elif k == 'state':
+                state = v
     else:
         print "?? report ", cmd
+
+    print "INFO: state=%s gameClock=%s Score0=%s Score1=%s" % (state, gameClock, score0, score1)
+
+
+def doCommand(c,v):
+    pass
+
+

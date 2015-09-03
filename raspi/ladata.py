@@ -82,6 +82,7 @@ buff=''
 # read 10 lines...
 # while (1):
 for i in range(200):
+    #line = port.readline(eol="\r\n")
     line = port.readline()
     buff = line[:-2]  # strip \r\n from Arduino
     print "[%d] buf=%s" % (i,buff)

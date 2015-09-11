@@ -18,6 +18,8 @@ However, this time I wanted to try some new techniques.  Emphasis was placed on 
   2. Use DIYLC instead of Eagle CAD.
   3. Use custom plugs with Silicon RTV and Sugru connectors instead of off-the-shelf PCB connectors.  This seems silly, but I really wanted to try it.
   4. Instead of just Arduino, use Firmata along with Raspberry Pi.
+  5. Finally, put game in Arduino, and push out text reports on Serial bus for use by listening Raspberry Pi.
+     
 
 ## Things to try (if time allows):
 
@@ -27,4 +29,20 @@ However, this time I wanted to try some new techniques.  Emphasis was placed on 
 ## The Build
 
 Pictures of the [Build of LightArcade](https://goo.gl/photos/uvECDhv7FLh9xkrC6 "LightArcade")
+
+## Building and Programming Resources
+
+http://blog.oscarliang.net/raspberry-pi-and-arduino-connected-serial-gpio/
+
+http://elinux.org/RPi_Low-level_peripherals#Model_A.2B.2C_B.2B_and_B2
+
+http://makezine.com/projects/tutorial-raspberry-pi-gpio-pins-and-python/
+
+## Pygame for Raspberry Pi graphics and sounds
+
+http://www.pygame.org/docs/tut/newbieguide.html
+
+## Sounds
+
+http://www.freesound.org/search/?q=GO
 

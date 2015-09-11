@@ -1,6 +1,17 @@
 #!/usr/bin/python
 
-# Light Arcade
+# Light Arcade backend driver
+# 2015 Scott James
+#
+# Read text reports from Arduino
+# Parse reports and display on scoreboard
+# During DEMO cycle, show pictures of building Light Arcade
+# Those pics are stored in attached thumbdrive (/media/PHOTOS/...)
+# We played with various sizes of images to balance fast load / good quality
+#
+# This is a first attempt to use Pygame to display info in a scoreboard.
+# it's not pretty, but it works. Lots of room for improvement...
+
 
 import time
 import glob
@@ -10,6 +21,8 @@ import os, sys
 from pygame.locals import *
 
 
+# read serial text data reports from Arduino with Light Arcade
+# parse game clock to display, player score, and game State
 class LASerial:
     port = None
     state = None
@@ -24,12 +37,10 @@ class LASerial:
         pass
 
     def doParseLine(self,buff):
-        print "PARSE buff=",buff
-        #a = buff.split(':')[1].split(';')
-        #terms = buff.split(':')[1].split(';')
+        #print "PARSE buff=",buff
         terms = buff.split(';')
         for t in (terms):
-            print "term: >%s<" % (t) 
+            ###print "term: >%s<" % (t) 
             if t == '' or t is None:
                 continue
             (k,v) = t.split('=')
@@ -62,25 +73,18 @@ class LASerial:
 
     def doSerialEvent(self):
         buff=''
-#        while (1):
-#        for i in range(200):
         line = self.port.readline()
         buff = line.strip("\r\n")
-        #buff = line[:-2]  # strip \r\n from Arduino
-        print "buf=%s" % buff
+        #print "buf=%s" % buff
 # skip lines with #, which are comments not to be processed
-        #if buff == '' or buff[0] == '#' or (buff.find(':') < 0):
         if buff == '' or buff[0] == '#':
             print "skip empty/comment line:", buff
             self.state = ''
             return
-            #continue
 # other lines are COMMAND:<LIST;OF;TERMS>
         (cmd,terms) = buff.split(':')
         if (cmd == 'TICK'):
             self.doTICK(terms)
-        #elif (cmd != 'TICK'):
-        #    next
 
         print "... INFO: state=%s gameClock=%s Score0=%s Score1=%s" % (self.state, self.gameClock, self.score0, self.score1)
 
@@ -94,6 +98,7 @@ class LASerial:
         return self.state
 
 
+# Slide show for displaying images of building Light Arcade.
 class Photo:
     photos = []
     #iterphoto = None
@@ -102,13 +107,11 @@ class Photo:
     background = None
     photosecs = 3  # show for a few secs
     fullscreen = False   # current state; toggle for fullscreen
-    #width = 5312
-    #height = 2988
-    #width = 768
-    #height = int(width * 1.777)
-    #height = 1024
-    height = 800
-    width = int(height/1.777)
+    # play around with photo sizes, balance for best quality/fast load
+    ##height = 480
+    ##width = int(height/1.777)
+    width = 640
+    height = int(width / 1.333)
     ## width = 800
     ## height = int(width/1.777)
 
@@ -117,35 +120,30 @@ class Photo:
 
     # read photos/ for list of files
     def loadPhotos(self,srcdir):
-# FIXME read photos/ dir
         self.photos = glob.glob(srcdir)
         self.photos.sort()
-        #self.photos.append('photos/20150619_080550.jpg')
-        #self.photos.append('photos/20150619_080629.jpg')
-        #self.photos.append('photos/20150805_000822.jpg')
-        #self.iterphoto = iter(self.photos)
         pass
 
     def getNextPhoto(self):
         p = self.photos.pop(0)
-        print "p=",p
+        #print "p=",p
         self.photos.append(p)
         return p
 
     # show next img in list, update photoposttime timestamp
     def showPhoto(self,ph):
-# get next photo to show
-        #self.ph = self.getNextPhoto()
         print "photo: ", ph
         self.img = pygame.image.load(ph).convert()
-        #self.img = pygame.image.load(self.ph).convert()
 # TODO get dimensions, and resize to window...
         ## rot = pygame.transform.rotate(self.img, -90)
         ## trans = pygame.transform.scale(rot, (self.width,self.height))
         ## trans = pygame.transform.scale(img, (self.width,self.height))
 # blit photo to screen
         self.screen.blit(self.background, (0, 0))
-        self.screen.blit(self.img, (0, 0))
+        self.screen.blit(self.img,
+                (self.screen.get_rect().centerx - 
+                    self.img.get_rect().centerx, 0))
+        #self.screen.blit(self.img, (0, 0))
         ## self.screen.blit(trans, (0, 0))
         pygame.display.flip()
 # update timestamp
@@ -156,26 +154,27 @@ class Photo:
     # if photo shown > photosecs seconds, then rotate photo
     def showPhotos(self):
         # Event loop
-# FIXME put while loop outside showPhotos(), so we can service Serial, looking for commands...
-        #while 1:
 
-        #TODO serial.readlin()  ... parse line...
         #pygame.time.delay(100)
         for event in pygame.event.get():
             if event.type == QUIT:
                 return False
-            if event.type == K_f:
-                self.fullscreen = not self.fullscreen
-                print "toggle full screen/window:"
-                if self.fullscreen:
-                    print "Fullscreen"
-                else: 
-                    print "Fullscreen"
+                #pygame.display.quit()
+            elif event.type == VIDEORESIZE:
+                print "got: video resize"
+                self.screen=pygame.display.set_mode(event.dict['size'],HWSURFACE|DOUBLEBUF|RESIZABLE)
+                #screen.blit(pygame.transform.scale(pic,event.dict['size']),(0,0))
+                self.makeBackground()
+                self.screen.blit(self.background, (0, 0))
+                self.screen.blit(self.img,
+                        (self.screen.get_rect().centerx - 
+                            self.img.get_rect().centerx, 0))
+                pygame.display.flip()
         if (self.photoposttime+(self.photosecs*1e3) < pygame.time.get_ticks() ):
             self.showPhoto( self.getNextPhoto() )
         return True
 
-# show scoreboard with info
+# show scoreboard with Player scores, game clock countdown
     def showScoreboard(self,d):
         topmargin = 10
         leftmargin = 10
@@ -210,11 +209,13 @@ class Photo:
         self.screen.blit(redsfc, redpos)
         self.screen.blit(msgsfc, msgpos)
         self.screen.blit(clocksfc, clockpos)
+        self.screen.blit(score0sfc, score0pos)
+        self.screen.blit(score1sfc, score1pos)
         # Display to screen
         pygame.display.flip()
 
-    def showTick(self):
-        pass
+#    def showTick(self):
+#        pass
 
     def showDEMO(self,d):
         # do slide show...
@@ -223,23 +224,32 @@ class Photo:
     def showSTART(self,d):
         d['msg'] = 'Ready'
         d['clock'] = 'Go!'
-# TODO: play audio 'start'
         self.showScoreboard(d)
-        pass
+#  play audio 'start'
+        chanstart = self.soundstart.play()
+        while chanstart.get_busy():
+            pygame.time.delay(50)
+
 
     def showWINNER(self,d):
         d['msg'] = 'Winner'
-        d['clock'] = 'RED/BLUE'
-# TODO: play audio 'winner'
+        winner = 'Tie'
+        if d['score0'] > d['score1']:
+            winner = 'BLUE'
+        elif d['score0'] < d['score1']:
+            winner = 'RED'
+        d['clock'] = winner
         self.showScoreboard(d)
-        pass
+#  play audio 'win'
+        chanwin = self.soundwin.play()
+        while chanwin.get_busy():
+            pygame.time.delay(50)
 
     def showPLAY(self,d):
-        #d = {'score0':self.score0, 'score1':self.score1,
-        #        'msg':'Clock', 'clock':self.gameClock }
         self.showScoreboard(d)
         pass
 
+# start up title page
     def showTitle(self):
         # Display some text
         textsfc = self.medfont.render("Light Arcade", 1, (200, 200, 200))
@@ -251,22 +261,38 @@ class Photo:
         self.screen.blit(textsfc, textpos)
         pygame.display.flip()
 
+# make 80's style green crt screen as background image
+    def makeBackground(self):
+        # Make a background surface for current screen
+        self.background = pygame.Surface(self.screen.get_size())
+        #self.background = self.background.convert()
+        self.background.fill((20, 20, 20))
+        w,h = self.screen.get_size()
+        print "w,h=",w,h
+        for y in range(0,h,4):
+            points = [ (0,y) , (w,y) ]
+            thickness = 1
+            pygame.draw.lines(self.background,(30,60,30), False, points, thickness)
+            pass
+
+# make resizeable screen
     def setup(self):
         # Initialise screen
         pygame.init()
-# TODO get screenhight, calc self.height/width and setup for full-size window
-        #screen = pygame.display.set_mode((640, 480))
-        self.screen = pygame.display.set_mode((self.width, self.height))
+        self.screen = pygame.display.set_mode((self.width, self.height),HWSURFACE|DOUBLEBUF|RESIZABLE)
         pygame.display.set_caption('Light Arcade')
+
+# init sounds
+        pygame.mixer.init()
+        print "get sound tick.wav"
+        self.soundtick= pygame.mixer.Sound("tick.wav")  #works!
+        self.soundwin= pygame.mixer.Sound("win.wav")  #works!
+        self.soundstart= pygame.mixer.Sound("start.wav")  # just a pop
+
+        self.makeBackground()
 
         # setup medium-sized font
         self.medfont = pygame.font.Font(None, 48)
-
-        # Make a background surface
-        self.background = pygame.Surface(self.screen.get_size())
-        self.background = self.background.convert()
-        self.background.fill((20, 20, 20))
-        # TODO draw alternate dark/gray lines for texture
 
         # Blit everything to the screen
         self.screen.blit(self.background, (0, 0))
@@ -274,27 +300,16 @@ class Photo:
 
 
 
+#
+# run it
+#
 if __name__ == '__main__':
     show = Photo()
     show.setup()
     show.showTitle()
-    #show.loadPhotos('/home/pi/photos/*.jpg')
-    #show.loadPhotos('/media/lightarcade640h/*.jpg')
-    show.loadPhotos('/media/PHOTOS/lightarcade800h/*.jpg')
-
-#    show.showNextPhoto()
-#    time.sleep(2)
-#    show.showNextPhoto()
-#    time.sleep(2)
-#    show.showNextPhoto()
-#    time.sleep(2)
-
-# FIXME read photos/ dir
+    #show.loadPhotos('/media/PHOTOS/lightarcade800h/*.jpg')
+    show.loadPhotos('/media/PHOTOS/lightarcade640h/*.jpg')
     ser = LASerial()
-
-    #show.showSTART()
-    #time.sleep(5)
-    #sys.exit()
 
     working = True
     while working:
@@ -311,7 +326,4 @@ if __name__ == '__main__':
             show.showWINNER(d)
         elif gamestate == 'PLAY':
             show.showPLAY(d)
-
-
-#    main()
 

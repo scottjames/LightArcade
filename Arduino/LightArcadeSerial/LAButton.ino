@@ -108,7 +108,7 @@ bool processButtons(uint16_t x) {
       if (changed && state) {
         action = true;
         if ( (b < 4) && tryToggleButton(b, x) ) {
-          sendToggleReport(x); // only report on toggle
+          //sendToggleReport(x); // only report on toggle; this makes LOTS of reports on every toggle, and makes serial buffer fall behind.
         }
         else if (b == 4) {
           // newgame button

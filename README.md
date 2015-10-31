@@ -49,3 +49,23 @@ http://www.freesound.org/search/?q=GO
 ## Source Code
 https://github.com/scottjames/LightArcade
 
+# Parts (some)
+
+1" arcade style buttons
+http://www.ebay.com/itm/291190314286
+
+ATMEGA328P 16MHz 5V Compatible to Arduino PRO mini
+http://www.ebay.com/itm/191679508570
+
+Prototyping PCB Circuit Board Stripboard 94x53mm (veroboard)
+http://www.ebay.com/itm/Prototyping-PCB-Circuit-Board-Stripboard-94x53mm-/260829423263
+
+# Software
+
+DIYLC - Do It Yourself Layout Creator
+https://code.google.com/p/diy-layout-creator/
+
+For another alternative, try Fritzing
+http://fritzing.org/home/
+
+
